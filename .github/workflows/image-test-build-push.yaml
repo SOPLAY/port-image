@@ -41,7 +41,7 @@ jobs:
   get-port-list:
     runs-on: ubuntu-latest
     outputs:
-      port-list: ${{ steps.get-port-list.outputs.port-list }}
+      port-list: ${{ toJson(steps.get-port-list.outputs.port-list) }}
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
