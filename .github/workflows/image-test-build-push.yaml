@@ -49,12 +49,20 @@ jobs:
         id: get-port-list
         run: echo port-list=$(jq -sR 'split("\n")' port-list.txt) >> $GITHUB_OUTPUT
 
+  ## 빠른 빌드를 진행하기위해 플렛폼 분리
   image-build-and-push:
     runs-on: ubuntu-latest
     needs: [get-port-list, test]
     strategy:
       matrix:
-        port: ${{ fromJson(needs.get-port-list.outputs.port-list) }}
+        build-platform:
+          - linux/amd64
+          - linux/arm64
+        port:
+          - 80
+          - 3000
+          - 8000
+          - 8080
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
@@ -73,6 +81,17 @@ jobs:
           push: true
           build-args: DEFAULT_PORT=${{ matrix.port }}
           tags: ${{ vars.DOCKER_USERNAME }}/port:${{ matrix.port }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.build-platform }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: image-build-and-push
+    if: always()
+    steps:
+      - name: notify
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.WEBHOOK_URL }}
+          title: tkdgns1341/port 이미지 배포
