@@ -54,7 +54,7 @@ jobs:
     needs: [get-port-list, test]
     strategy:
       matrix:
-        port: ${{ needs.get-port-list.outputs.port-list }}
+        port: ${{ fromJson(needs.get-port-list.outputs.port-list) }}
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
